@@ -1,0 +1,1 @@
+# plugins-smk-sidebar-generator
