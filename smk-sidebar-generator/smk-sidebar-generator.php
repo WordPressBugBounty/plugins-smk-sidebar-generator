@@ -4,13 +4,13 @@
  * Plugin URI: https://zerowp.com/sidebar-generator
  * Description: Generate an unlimited number of sidebars and assign them to any page using the conditional options without touching a single line of code.
  * Author: Andrei Surdu
- * Version: 3.5.2
+ * Version: 3.6.0
  * Author URI: https://zerowp.com
- * Licence: GPLv2
+ * License: GPLv2
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
  * Requires PHP: 5.3
  * Requires at least: 4.0
- * Tested up to: 6.4.1
+ * Tested up to: 6.9.1
  * Text Domain: smk-sidebar-generator
  */
 
@@ -38,7 +38,7 @@ function smk_sidebar_version(){
 /**
  * All conditions
  *
- * All condtions will be accessible from this function
+ * All conditions will be accessible from this function
  *
  * @return array All conditions type => class_name
  */
@@ -49,27 +49,43 @@ function smk_sidebar_conditions_filter(){
 /**
  * Register a condition
  *
- * Register a condition and inject it in the main array
+ * Register a condition and inject it in the main array.
  *
- * @param string $name Condition class name
- * @return void
+ * @param string $name Condition class name.
  */
-class Smk_Sidebar_Generator_Register_Condition{
-	public $name;
-	public $allCond;
+class Smk_Sidebar_Generator_Register_Condition {
 
-	public function __construct( $name ){
+	/**
+	 * Condition class name.
+	 *
+	 * @var string
+	 */
+	private $name;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param string $name Condition class name.
+	 */
+	public function __construct( $name ) {
 		$this->name = $name;
-		$this->allCond = smk_sidebar_conditions_filter();
-		add_filter( 'smk_sidebar_conditions_filter', array( $this, 'add') );
+		add_filter( 'smk_sidebar_conditions_filter', array( $this, 'add' ) );
 	}
-	public function add(){
-		if( class_exists( $this->name ) ){
-			$class = new $this->name;
-			if( ! array_key_exists($class->type, $this->allCond) ){
-				return array( $class->type => $this->name );
+
+	/**
+	 * Add condition to the conditions array.
+	 *
+	 * @param array $conditions Existing conditions.
+	 * @return array Modified conditions array.
+	 */
+	public function add( $conditions ) {
+		if ( class_exists( $this->name ) ) {
+			$class = new $this->name();
+			if ( ! empty( $class->type ) && ! array_key_exists( $class->type, $conditions ) ) {
+				$conditions[ $class->type ] = $this->name;
 			}
 		}
+		return $conditions;
 	}
 }
 
@@ -136,11 +152,10 @@ Shortcode
 */
 // [smk_sidebar id="X"] //X is the sidebar ID
 function smk_sidebar_shortcode( $atts ) {
-
-	extract( shortcode_atts( array(
-		'id' => null,
-	), $atts ) );
-	smk_sidebar($id);
+	$atts = shortcode_atts( array( 'id' => null ), $atts, 'smk_sidebar' );
+	ob_start();
+	smk_sidebar( $atts['id'] );
+	return ob_get_clean();
 }
 add_shortcode( 'smk_sidebar', 'smk_sidebar_shortcode' );
 

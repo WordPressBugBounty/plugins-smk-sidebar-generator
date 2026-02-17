@@ -1,10 +1,3 @@
-/* 
-* @Author: Andrei Surdu
-* @Date:   2014-03-12 21:17:04
-* @Last Modified by:   Andrei Surdu
-* @Last Modified time: 2014-07-16 21:09:21
-*/
-
 ;(function( $ ) {
 	"use strict";
 
@@ -95,9 +88,21 @@
 					template.find('input, select').each(function(){
 						var name  = $(this).attr('name');
 						var value = $(this).attr('value');
+						var inputId = $(this).attr('id');
 						$(this).attr( 'name', name.replace( '__id__', id ) );
+						if( inputId ){
+							$(this).attr( 'id', inputId.replace( '__id__', id ) );
+						}
 						if( $(this).attr( 'value' ) ){
 							$(this).attr( 'value', value.replace( '__id__', id ).replace( '__index__', counter ) );
+						}
+					});
+
+					// Labels
+					template.find('label[for]').each(function(){
+						var forAttr = $(this).attr('for');
+						if( forAttr ){
+							$(this).attr( 'for', forAttr.replace( '__id__', id ) );
 						}
 					});
 
@@ -107,12 +112,16 @@
 					template.find('.condition-add').attr( 'data-sidebar-id', id );
 
 					// Index
-					var h3 = template.find('h3.accordion-section-title span.name').html().replace( '__index__', counter );
-					template.find('h3.accordion-section-title span.name').html( h3 );
+					var h3 = template.find('h3.accordion-section-title .name').html().replace( '__index__', counter );
+					template.find('h3.accordion-section-title .name').html( h3 );
 
 					// Shortcode
-					var shortcode = template.find('.smk-sidebar-shortcode').html().replace( '__id__', id );
-					template.find('.smk-sidebar-shortcode').html( shortcode );
+					var shortcodeEl = template.find('.smk-sidebar-shortcode');
+					var shortcode = shortcodeEl.html().replace( '__id__', id );
+					shortcodeEl.html( shortcode );
+					if( shortcodeEl.attr('id') ){
+						shortcodeEl.attr( 'id', shortcodeEl.attr('id').replace( '__id__', id ) );
+					}
 
 					// Template ID
 					var template_id = template.attr('id');
@@ -137,18 +146,18 @@
 				var container = jQuery('#smk-sidebars');
 
 				container.on('change', '.smk-sidebar-name', function(){
-					$(this).parents('li').find('h3.accordion-section-title span.name').html( $(this).val() );
+					$(this).parents('li').find('h3.accordion-section-title .name').html( $(this).val() );
 
 				}).on('keyup', '.smk-sidebar-name', function(){
-					$(this).parents('li').find('h3.accordion-section-title span.name').html( $(this).val() );
+					$(this).parents('li').find('h3.accordion-section-title .name').html( $(this).val() );
 
 				});
 
 				container.on('change', '.smk-sidebar-description', function(){
-					$(this).parents('li').find('h3.accordion-section-title span.description').html( $(this).val() );
+					$(this).parents('li').find('h3.accordion-section-title .description').html( $(this).val() );
 
 				}).on('keyup', '.smk-sidebar-description', function(){
-					$(this).parents('li').find('h3.accordion-section-title span.description').html( $(this).val() );
+					$(this).parents('li').find('h3.accordion-section-title .description').html( $(this).val() );
 
 				});
 			},
@@ -187,10 +196,11 @@
 
 					jQuery.ajax({
 						type: "POST",
-						url: ajaxurl,
+						url: smkSidebarVars.ajaxurl,
 						dataType: "json",
 						data: {
 							'action': 'smk-sidebar-generator_load_equalto',
+							'nonce':  smkSidebarVars.nonce,
 							'data':   { condition_if: selected }
 						},
 						success: function(response){
